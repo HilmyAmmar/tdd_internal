@@ -8,7 +8,15 @@ class TodoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(home: TodoPage());
+    return MaterialApp(
+      title: 'Todo App',
+      theme: ThemeData(
+        primarySwatch: Colors.indigo,
+        scaffoldBackgroundColor: const Color(0xFFF5F5F5),
+        useMaterial3: true,
+      ),
+      home: const TodoPage(),
+    );
   }
 }
 
@@ -24,8 +32,10 @@ class _TodoPageState extends State<TodoPage> {
   final TextEditingController controller = TextEditingController();
 
   void addTodo(String title) {
+    if (title.trim().isEmpty) return;
+
     setState(() {
-      todos.add(Todo(title: title));
+      todos.add(Todo(title: title.trim()));
       controller.clear();
     });
   }
@@ -39,46 +49,106 @@ class _TodoPageState extends State<TodoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Todo App')),
+      appBar: AppBar(
+        title: const Text('My Todos'),
+        centerTitle: true,
+        backgroundColor: Colors.indigo.shade600,
+        foregroundColor: Colors.white,
+      ),
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     key: const Key('todoField'),
                     controller: controller,
-                    decoration: const InputDecoration(labelText: 'New todo'),
+                    decoration: InputDecoration(
+                      hintText: 'Enter new todo...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 12,
+                      ),
+                    ),
                   ),
                 ),
-                IconButton(
+                const SizedBox(width: 10),
+                ElevatedButton(
                   key: const Key('addButton'),
-                  icon: const Icon(Icons.add),
                   onPressed: () => addTodo(controller.text),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.all(16),
+                    backgroundColor: Colors.indigo,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Icon(Icons.add),
                 ),
               ],
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              itemCount: todos.length,
-              itemBuilder: (context, index) {
-                final todo = todos[index];
-                return ListTile(
-                  key: Key('todo_$index'),
-                  title: Text(
-                    todo.title,
-                    style: TextStyle(
-                      decoration:
-                          todo.isDone ? TextDecoration.lineThrough : null,
+            child:
+                todos.isEmpty
+                    ? const Center(
+                      child: Text(
+                        'No todos yet 🎉',
+                        style: TextStyle(fontSize: 16, color: Colors.grey),
+                      ),
+                    )
+                    : ListView.separated(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      itemCount: todos.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 8),
+                      itemBuilder: (context, index) {
+                        final todo = todos[index];
+                        return GestureDetector(
+                          key: Key('todo_$index'),
+                          onTap: () => toggleTodo(index),
+                          child: Card(
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: ListTile(
+                              leading: Icon(
+                                todo.isDone
+                                    ? Icons.check_circle
+                                    : Icons.radio_button_unchecked,
+                                color:
+                                    todo.isDone
+                                        ? Colors.green
+                                        : Colors.grey.shade500,
+                              ),
+                              title: Text(
+                                todo.title,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  decoration:
+                                      todo.isDone
+                                          ? TextDecoration.lineThrough
+                                          : null,
+                                  color:
+                                      todo.isDone
+                                          ? Colors.grey.shade600
+                                          : Colors.black87,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
-                  ),
-                  onTap: () => toggleTodo(index),
-                );
-              },
-            ),
           ),
         ],
       ),
